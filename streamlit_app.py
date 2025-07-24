@@ -19,9 +19,8 @@ training_catalog = {
     "Advanced Python": "Mastering Python",
     "Data Visualization": "Data Viz with Python"
 }
-industry_standards = {skill: random.randint(6, 9) for skill in skills_pool}
 
-# Generate 20 employees
+# Generate employee data
 employees = []
 for i in range(20):
     role = roles[i]
@@ -29,12 +28,12 @@ for i in range(20):
     experience = random.randint(1, 10)
     comm_skill = random.choice(["Beginner", "Intermediate", "Advanced"])
     peer_review = random.choice(["Excellent team player", "Strong communicator", "Needs improvement", "Technically sound"])
-    enrolled = random.randint(1, len(skills))  # Ensure enrolled does not exceed number of skills
-    completed = random.randint(0, enrolled)
+    enrolled = random.randint(1, 4)
+    trainings = random.sample(skills, min(enrolled, len(skills)))
+    completed = random.randint(0, len(trainings))
+    completed_trainings = random.sample(trainings, completed)
+    pending_trainings = list(set(trainings) - set(completed_trainings))
     promotion = "Yes" if i < 5 else "No"
-    trainings = random.sample(skills, enrolled)
-    completed_trainings = trainings[:completed]
-    pending_trainings = trainings[completed:]
     employees.append({
         "Name": f"Employee {i+1}",
         "Role": role,
@@ -46,63 +45,60 @@ for i in range(20):
         "Certifications Completed": completed,
         "Promotion Eligible": promotion,
         "Completed Trainings": [training_catalog[skill] for skill in completed_trainings],
-        "Pending Trainings": [training_catalog[skill] for skill in pending_trainings],
-        "Learning Path": [training_catalog[skill] for skill in skills if skill not in completed_trainings]
+        "Pending Trainings": [training_catalog[skill] for skill in pending_trainings]
     })
 
 # Streamlit UI
 st.set_page_config(layout="wide")
 st.title("SkillSight Dashboard")
 
-# Sidebar for employee selection
-selected_name = st.sidebar.selectbox("Select Employee", [emp["Name"] for emp in employees])
-selected_emp = next(emp for emp in employees if emp["Name"] == selected_name)
+# View toggle
+view_mode = st.sidebar.radio("Select View", ["Employee View", "Manager View"])
 
-# Employee profile
-st.subheader(f"Profile: {selected_name}")
-col1, col2 = st.columns(2)
-with col1:
-    st.markdown(f"**Role:** {selected_emp['Role']}")
-    st.markdown(f"**Experience:** {selected_emp['Experience']} years")
-    st.markdown(f"**Communication Skills:** {selected_emp['Communication']}")
-    st.markdown(f"**Promotion Eligible:** {selected_emp['Promotion Eligible']}")
-with col2:
-    st.markdown(f"**Skills:** {', '.join(selected_emp['Skills'])}")
-    st.markdown(f"**Certifications Enrolled:** {selected_emp['Certifications Enrolled']}")
-    st.markdown(f"**Certifications Completed:** {selected_emp['Certifications Completed']}")
-    st.markdown(f"**Peer Review:** {selected_emp['Peer Review']}")
+if view_mode == "Employee View":
+    selected_name = st.sidebar.selectbox("Select Employee", [emp["Name"] for emp in employees])
+    selected_emp = next(emp for emp in employees if emp["Name"] == selected_name)
 
-# Chatbot-like notification panel
-st.subheader("📢 Training Bot Notification")
-with st.expander("View Training Notifications"):
-    st.markdown(f"👋 Hello **{selected_name}**, here's your training update:")
-    st.markdown(f"- ✅ You have completed **{selected_emp['Certifications Completed']}** out of **{selected_emp['Certifications Enrolled']}** trainings.")
+    st.subheader(f"Profile: {selected_name}")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"**Role:** {selected_emp['Role']}")
+        st.markdown(f"**Experience:** {selected_emp['Experience']} years")
+        st.markdown(f"**Communication Skills:** {selected_emp['Communication']}")
+        st.markdown(f"**Promotion Eligible:** {selected_emp['Promotion Eligible']}")
+    with col2:
+        st.markdown(f"**Skills:** {', '.join(selected_emp['Skills'])}")
+        st.markdown(f"**Certifications Enrolled:** {selected_emp['Certifications Enrolled']}")
+        st.markdown(f"**Certifications Completed:** {selected_emp['Certifications Completed']}")
+        st.markdown(f"**Peer Review:** {selected_emp['Peer Review']}")
+
+    st.subheader("Training Summary")
+    st.markdown("**✅ Completed Trainings:**")
+    st.write(selected_emp["Completed Trainings"])
+    st.markdown("**⏳ Pending Trainings:**")
+    st.write(selected_emp["Pending Trainings"])
+
+    st.subheader("Bot Notification")
     if selected_emp["Pending Trainings"]:
-        st.markdown(f"- ⏳ Pending Trainings: {', '.join(selected_emp['Pending Trainings'])}")
+        st.info(f"Hi {selected_name}, you have {len(selected_emp['Pending Trainings'])} pending trainings. Please complete: {', '.join(selected_emp['Pending Trainings'])}")
     else:
-        st.markdown("- 🎉 All trainings completed!")
-    if selected_emp["Learning Path"]:
-        st.markdown(f"- 📚 Recommended Learning Path: {', '.join(selected_emp['Learning Path'])}")
-    else:
-        st.markdown("- 🚀 You're up to date with your learning path!")
+        st.success("You have completed all your trainings. Great job!")
 
-# Training details
-st.subheader("📘 Training Summary")
-col3, col4 = st.columns(2)
-with col3:
-    st.markdown("### ✅ Completed Trainings")
-    if selected_emp["Completed Trainings"]:
-        for t in selected_emp["Completed Trainings"]:
-            st.markdown(f"- {t}")
-    else:
-        st.markdown("No trainings completed yet.")
-with col4:
-    st.markdown("### ⏳ Pending Trainings")
+elif view_mode == "Manager View":
+    st.subheader("Team Overview")
+    df = pd.DataFrame(employees)
+    df_display = df[["Name", "Role", "Experience", "Communication", "Certifications Enrolled", "Certifications Completed", "Promotion Eligible"]]
+    st.dataframe(df_display)
+
+    st.subheader("Send Notification to Employee")
+    selected_name = st.selectbox("Select Employee to Notify", [emp["Name"] for emp in employees])
+    selected_emp = next(emp for emp in employees if emp["Name"] == selected_name)
     if selected_emp["Pending Trainings"]:
-        for t in selected_emp["Pending Trainings"]:
-            st.markdown(f"- {t}")
+        message = f"Dear {selected_name}, please complete the following trainings: {', '.join(selected_emp['Pending Trainings'])}"
     else:
-        st.markdown("No pending trainings.")
+        message = f"Dear {selected_name}, you have completed all your trainings. Keep up the good work!"
 
-
+    st.text_area("Notification Message", value=message, height=100)
+    if st.button("Send Notification"):
+        st.success(f"Notification sent to {selected_name}")
 
