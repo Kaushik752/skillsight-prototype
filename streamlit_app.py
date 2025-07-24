@@ -1,58 +1,90 @@
 import streamlit as st
 import pandas as pd
+import random
 
-# Sample dummy data
-employee_data = {
-    "name": "Jane Doe",
-    "role": "Software Engineer",
-    "skills": ["Python", "Machine Learning", "SQL", "Git"],
-    "recommended_courses": [
-        {"course": "Advanced Python", "progress": 60},
-        {"course": "Deep Learning with TensorFlow", "progress": 30},
-        {"course": "Data Engineering on GCP", "progress": 0}
-    ],
-    "promotion_ready": True
-}
+# Simulate employee data
+def generate_employee_data():
+    roles = ['Software Developer', 'Data Analyst', 'QA Engineer', 'Product Manager']
+    skills = ['Python', 'SQL', 'Testing', 'Project Management', 'Advanced Python']
+    data = []
 
-team_data = [
-    {"name": "Jane Doe", "skills": 4, "promotion_ready": True},
-    {"name": "John Smith", "skills": 3, "promotion_ready": False},
-    {"name": "Alice Johnson", "skills": 5, "promotion_ready": True},
-    {"name": "Bob Lee", "skills": 2, "promotion_ready": False}
-]
+    for i in range(1, 21):
+        role = 'Software Developer' if i <= 10 else random.choice(roles)
+        skill_set = ['Python'] if role == 'Software Developer' else random.sample(skills, 2)
+        if role == 'Software Developer':
+            skill_set.append('Advanced Python')  # simulate upskilling need
+        promotion_eligible = True if i in [1, 2, 3, 4, 5] else False
+        data.append({
+            'Employee ID': f'EMP{i:03}',
+            'Name': f'Employee {i}',
+            'Role': role,
+            'Skills': ', '.join(skill_set),
+            'Promotion Eligible': promotion_eligible
+        })
+
+    return pd.DataFrame(data)
 
 # Streamlit app
-st.set_page_config(page_title="SkillSight Prototype", layout="wide")
+st.title("SkillSight Prototype Dashboard")
 
-st.title("SkillSight – AI-Powered Talent Growth Navigator")
+df = generate_employee_data()
 
-tab1, tab2 = st.tabs(["👩‍💻 Employee Dashboard", "👨‍💼 Manager Dashboard"])
+st.subheader("Employee Overview")
+st.dataframe(df)
 
-with tab1:
-    st.header("Employee Dashboard")
-    st.subheader(f"Welcome, {employee_data['name']} ({employee_data['role']})")
-    st.markdown("### Current Skills")
-    st.write(", ".join(employee_data["skills"]))
+st.subheader("Promotion Eligibility Summary")
+promotion_count = df['Promotion Eligible'].sum()
+st.write(f"Total Employees Eligible for Promotion: {promotion_count}")
 
-    st.markdown("### Recommended Learning Path")
-    for course in employee_data["recommended_courses"]:
-        st.write(f"**{course['course']}**")
-        st.progress(course["progress"])
+st.subheader("Upskilling Needs")
+upskill_df = df[df['Skills'].str.contains('Advanced Python')]
+st.write(f"Employees Needing Upskilling in Advanced Python: {len(upskill_df)}")
+st.dataframe(upskill_df[['Employee ID', 'Name', 'Role', 'Skills']])
 
-    st.markdown("### Promotion Readiness")
-    if employee_data["promotion_ready"]:
-        st.success("🎉 You are ready for promotion!")
-    else:
-        st.warning("📈 Keep learning to become promotion-ready.")
+# Save the corrected version
+with open("streamlit_app.py", "w") as f:
+    f.write("""
+import streamlit as st
+import pandas as pd
+import random
 
-with tab2:
-    st.header("Manager Dashboard")
-    st.markdown("### Team Skill Heatmap")
-    df = pd.DataFrame(team_data)
-    st.dataframe(df.style.background_gradient(cmap='Blues', subset=["skills"]))
+# Simulate employee data
+def generate_employee_data():
+    roles = ['Software Developer', 'Data Analyst', 'QA Engineer', 'Product Manager']
+    skills = ['Python', 'SQL', 'Testing', 'Project Management', 'Advanced Python']
+    data = []
 
-    st.markdown("### Promotion Readiness Overview")
-    for member in team_data:
-        status = "✅ Ready" if member["promotion_ready"] else "❌ Not Ready"
-        st.write(f"{member['name']}: {status}")
+    for i in range(1, 21):
+        role = 'Software Developer' if i <= 10 else random.choice(roles)
+        skill_set = ['Python'] if role == 'Software Developer' else random.sample(skills, 2)
+        if role == 'Software Developer':
+            skill_set.append('Advanced Python')  # simulate upskilling need
+        promotion_eligible = True if i in [1, 2, 3, 4, 5] else False
+        data.append({
+            'Employee ID': f'EMP{i:03}',
+            'Name': f'Employee {i}',
+            'Role': role,
+            'Skills': ', '.join(skill_set),
+            'Promotion Eligible': promotion_eligible
+        })
+
+    return pd.DataFrame(data)
+
+# Streamlit app
+st.title("SkillSight Prototype Dashboard")
+
+df = generate_employee_data()
+
+st.subheader("Employee Overview")
+st.dataframe(df)
+
+st.subheader("Promotion Eligibility Summary")
+promotion_count = df['Promotion Eligible'].sum()
+st.write(f"Total Employees Eligible for Promotion: {promotion_count}")
+
+st.subheader("Upskilling Needs")
+upskill_df = df[df['Skills'].str.contains('Advanced Python')]
+st.write(f"Employees Needing Upskilling in Advanced Python: {len(upskill_df)}")
+st.dataframe(upskill_df[['Employee ID', 'Name', 'Role', 'Skills']])
+""")
 
