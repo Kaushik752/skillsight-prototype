@@ -10,6 +10,15 @@ roles = [
     "Software Developer", "Data Analyst", "Project Manager", "QA Engineer", "DevOps Engineer"
 ]
 skills_pool = ["Python", "SQL", "Communication", "Leadership", "Cloud", "Advanced Python", "Data Visualization"]
+training_catalog = {
+    "Python": "Python for Developers",
+    "SQL": "Advanced SQL Queries",
+    "Communication": "Effective Communication",
+    "Leadership": "Leadership Essentials",
+    "Cloud": "Cloud Fundamentals",
+    "Advanced Python": "Mastering Python",
+    "Data Visualization": "Data Viz with Python"
+}
 industry_standards = {skill: random.randint(6, 9) for skill in skills_pool}
 
 # Generate 20 employees
@@ -20,11 +29,12 @@ for i in range(20):
     experience = random.randint(1, 10)
     comm_skill = random.choice(["Beginner", "Intermediate", "Advanced"])
     peer_review = random.choice(["Excellent team player", "Strong communicator", "Needs improvement", "Technically sound"])
-    enrolled = random.randint(1, 5)
+    enrolled = random.randint(1, len(skills))  # Ensure enrolled does not exceed number of skills
     completed = random.randint(0, enrolled)
     promotion = "Yes" if i < 5 else "No"
-    pre_training_scores = {skill: random.randint(4, 8) for skill in skills}
-    post_training_scores = {skill: min(pre_training_scores[skill] + random.randint(0, 3), 10) for skill in skills}
+    trainings = random.sample(skills, enrolled)
+    completed_trainings = trainings[:completed]
+    pending_trainings = trainings[completed:]
     employees.append({
         "Name": f"Employee {i+1}",
         "Role": role,
@@ -35,8 +45,9 @@ for i in range(20):
         "Certifications Enrolled": enrolled,
         "Certifications Completed": completed,
         "Promotion Eligible": promotion,
-        "Pre Training Scores": pre_training_scores,
-        "Post Training Scores": post_training_scores
+        "Completed Trainings": [training_catalog[skill] for skill in completed_trainings],
+        "Pending Trainings": [training_catalog[skill] for skill in pending_trainings],
+        "Learning Path": [training_catalog[skill] for skill in skills if skill not in completed_trainings]
     })
 
 # Streamlit UI
@@ -61,53 +72,37 @@ with col2:
     st.markdown(f"**Certifications Completed:** {selected_emp['Certifications Completed']}")
     st.markdown(f"**Peer Review:** {selected_emp['Peer Review']}")
 
-# Skill comparison chart using Streamlit native chart
-st.subheader("Skill Proficiency vs Industry Standards")
-emp_skills = selected_emp["Skills"]
-emp_skill_levels = selected_emp["Post Training Scores"]
-industry_levels = {skill: industry_standards.get(skill, 7) for skill in emp_skills}
-
-comparison_df = pd.DataFrame({
-    "Skill": emp_skills,
-    "Employee": [emp_skill_levels[skill] for skill in emp_skills],
-    "Industry": [industry_levels[skill] for skill in emp_skills]
-})
-comparison_df.set_index("Skill", inplace=True)
-st.bar_chart(comparison_df)
-
-# Training impact visualization using Streamlit native chart
-st.subheader("Training Impact")
-pre_scores = selected_emp["Pre Training Scores"]
-post_scores = selected_emp["Post Training Scores"]
-
-training_df = pd.DataFrame({
-    "Skill": emp_skills,
-    "Pre-Training": [pre_scores[skill] for skill in emp_skills],
-    "Post-Training": [post_scores[skill] for skill in emp_skills]
-})
-training_df.set_index("Skill", inplace=True)
-st.line_chart(training_df)
-
-# Team overview with RAG analysis
-st.subheader("Team Overview")
-df = pd.DataFrame(employees)
-def rag_status(row):
-    if row["Certifications Completed"] < row["Certifications Enrolled"] / 2 and row["Communication"] == "Beginner":
-        return "Red"
-    elif row["Certifications Completed"] < row["Certifications Enrolled"]:
-        return "Amber"
+# Chatbot-like notification panel
+st.subheader("📢 Training Bot Notification")
+with st.expander("View Training Notifications"):
+    st.markdown(f"👋 Hello **{selected_name}**, here's your training update:")
+    st.markdown(f"- ✅ You have completed **{selected_emp['Certifications Completed']}** out of **{selected_emp['Certifications Enrolled']}** trainings.")
+    if selected_emp["Pending Trainings"]:
+        st.markdown(f"- ⏳ Pending Trainings: {', '.join(selected_emp['Pending Trainings'])}")
     else:
-        return "Green"
-df["Attrition Risk"] = df.apply(rag_status, axis=1)
-df_display = df.drop(columns=["Skills", "Peer Review", "Pre Training Scores", "Post Training Scores"])
-st.dataframe(df_display)
+        st.markdown("- 🎉 All trainings completed!")
+    if selected_emp["Learning Path"]:
+        st.markdown(f"- 📚 Recommended Learning Path: {', '.join(selected_emp['Learning Path'])}")
+    else:
+        st.markdown("- 🚀 You're up to date with your learning path!")
 
-# Team skill heatmap using Streamlit native chart
-st.subheader("Team Skill Distribution")
-skill_counts = {skill: 0 for skill in skills_pool}
-for emp in employees:
-    for skill in emp["Skills"]:
-        skill_counts[skill] += 1
-skill_df = pd.DataFrame.from_dict(skill_counts, orient='index', columns=['Count'])
-st.bar_chart(skill_df)
+# Training details
+st.subheader("📘 Training Summary")
+col3, col4 = st.columns(2)
+with col3:
+    st.markdown("### ✅ Completed Trainings")
+    if selected_emp["Completed Trainings"]:
+        for t in selected_emp["Completed Trainings"]:
+            st.markdown(f"- {t}")
+    else:
+        st.markdown("No trainings completed yet.")
+with col4:
+    st.markdown("### ⏳ Pending Trainings")
+    if selected_emp["Pending Trainings"]:
+        for t in selected_emp["Pending Trainings"]:
+            st.markdown(f"- {t}")
+    else:
+        st.markdown("No pending trainings.")
+
+
 
