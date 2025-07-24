@@ -1,38 +1,42 @@
 import streamlit as st
 import pandas as pd
 import random
-import plotly.graph_objects as go
-import plotly.express as px
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Set page config with dark theme
-st.set_page_config(page_title="SkillSight 2050", layout="wide")
+# Set futuristic theme using Streamlit's native styling
+st.set_page_config(layout="wide", page_title="SkillSight 2050", page_icon="🧠")
 
-# Apply custom CSS for futuristic look
+# Inject custom CSS for futuristic look
 st.markdown("""
     <style>
     body {
         background-color: #0f1117;
-        color: #ffffff;
-        font-family: 'Segoe UI', sans-serif;
+        color: #e0e0e0;
     }
     .stApp {
         background-color: #0f1117;
+        color: #e0e0e0;
     }
-    .css-1d391kg {
+    .css-1v3fvcr {
         background-color: #1c1e26;
         border-radius: 10px;
-        padding: 20px;
+        padding: 10px;
     }
-    .css-1v0mbdj {
-        color: #00ffe7;
+    .stDataFrame {
+        background-color: #1c1e26;
+        color: #e0e0e0;
     }
     </style>
 """, unsafe_allow_html=True)
 
 # Sample data generation
 roles = [
+    "Software Developer", "Data Analyst", "Project Manager", "QA Engineer", "DevOps Engineer",
+    "Software Developer", "Data Analyst", "Project Manager", "QA Engineer", "DevOps Engineer",
+    "Software Developer", "Data Analyst", "Project Manager", "QA Engineer", "DevOps Engineer",
     "Software Developer", "Data Analyst", "Project Manager", "QA Engineer", "DevOps Engineer"
-] * 4
+]
 skills_pool = ["Python", "SQL", "Communication", "Leadership", "Cloud", "Advanced Python", "Data Visualization"]
 industry_standards = {skill: random.randint(6, 9) for skill in skills_pool}
 
@@ -72,50 +76,48 @@ selected_emp = next(emp for emp in employees if emp["Name"] == selected_name)
 st.title(f"👤 Profile: {selected_name}")
 col1, col2 = st.columns(2)
 with col1:
-    st.markdown(f"**🧑 Role:** {selected_emp['Role']}")
-    st.markdown(f"**📅 Experience:** {selected_emp['Experience']} years")
-    st.markdown(f"**🗣️ Communication Skills:** {selected_emp['Communication']}")
-    st.markdown(f"**🚀 Promotion Eligible:** {selected_emp['Promotion Eligible']}")
+    st.markdown(f"**Role:** {selected_emp['Role']}")
+    st.markdown(f"**Experience:** {selected_emp['Experience']} years")
+    st.markdown(f"**Communication Skills:** {selected_emp['Communication']}")
+    st.markdown(f"**Promotion Eligible:** {selected_emp['Promotion Eligible']}")
 with col2:
-    st.markdown(f"**🧠 Skills:** {', '.join(selected_emp['Skills'])}")
-    st.markdown(f"**📚 Certifications Enrolled:** {selected_emp['Certifications Enrolled']}")
-    st.markdown(f"**✅ Certifications Completed:** {selected_emp['Certifications Completed']}")
-    st.markdown(f"**🧾 Peer Review:** {selected_emp['Peer Review']}")
+    st.markdown(f"**Skills:** {', '.join(selected_emp['Skills'])}")
+    st.markdown(f"**Certifications Enrolled:** {selected_emp['Certifications Enrolled']}")
+    st.markdown(f"**Certifications Completed:** {selected_emp['Certifications Completed']}")
+    st.markdown(f"**Peer Review:** {selected_emp['Peer Review']}")
 
-# Skill comparison chart using Plotly
+# Skill comparison chart using matplotlib
 st.subheader("📊 Skill Proficiency vs Industry Standards")
 emp_skills = selected_emp["Skills"]
 emp_skill_levels = selected_emp["Post Training Scores"]
 industry_levels = {skill: industry_standards.get(skill, 7) for skill in emp_skills}
 
-comparison_df = pd.DataFrame({
-    "Skill": emp_skills,
-    "Employee": [emp_skill_levels[skill] for skill in emp_skills],
-    "Industry": [industry_levels[skill] for skill in emp_skills]
-})
-
-fig = go.Figure()
-fig.add_trace(go.Bar(x=comparison_df["Skill"], y=comparison_df["Employee"], name='Employee', marker_color='cyan'))
-fig.add_trace(go.Bar(x=comparison_df["Skill"], y=comparison_df["Industry"], name='Industry', marker_color='magenta'))
-fig.update_layout(barmode='group', template='plotly_dark', title="Skill Comparison")
-st.plotly_chart(fig, use_container_width=True)
+fig, ax = plt.subplots()
+x = range(len(emp_skills))
+ax.bar(x, [emp_skill_levels[skill] for skill in emp_skills], width=0.4, label='Employee', color='cyan')
+ax.bar([i + 0.4 for i in x], [industry_levels[skill] for skill in emp_skills], width=0.4, label='Industry', color='magenta')
+ax.set_xticks([i + 0.2 for i in x])
+ax.set_xticklabels(emp_skills)
+ax.set_ylabel("Skill Level")
+ax.set_title("Skill Comparison")
+ax.legend()
+st.pyplot(fig)
 
 # Training impact visualization
 st.subheader("📈 Training Impact")
 pre_scores = selected_emp["Pre Training Scores"]
 post_scores = selected_emp["Post Training Scores"]
 
-training_df = pd.DataFrame({
-    "Skill": emp_skills,
-    "Pre-Training": [pre_scores[skill] for skill in emp_skills],
-    "Post-Training": [post_scores[skill] for skill in emp_skills]
-})
-
-fig2 = go.Figure()
-fig2.add_trace(go.Scatter(x=training_df["Skill"], y=training_df["Pre-Training"], mode='lines+markers', name='Pre-Training', line=dict(color='orange')))
-fig2.add_trace(go.Scatter(x=training_df["Skill"], y=training_df["Post-Training"], mode='lines+markers', name='Post-Training', line=dict(color='lime')))
-fig2.update_layout(template='plotly_dark', title="Training Effectiveness")
-st.plotly_chart(fig2, use_container_width=True)
+fig2, ax2 = plt.subplots()
+x2 = range(len(emp_skills))
+ax2.bar(x2, [pre_scores[skill] for skill in emp_skills], width=0.4, label='Pre-Training', color='orange')
+ax2.bar([i + 0.4 for i in x2], [post_scores[skill] for skill in emp_skills], width=0.4, label='Post-Training', color='green')
+ax2.set_xticks([i + 0.2 for i in x2])
+ax2.set_xticklabels(emp_skills)
+ax2.set_ylabel("Score")
+ax2.set_title("Training Effectiveness")
+ax2.legend()
+st.pyplot(fig2)
 
 # Team overview with RAG analysis
 st.subheader("🧑‍🤝‍🧑 Team Overview")
@@ -131,14 +133,17 @@ df["Attrition Risk"] = df.apply(rag_status, axis=1)
 df_display = df.drop(columns=["Skills", "Peer Review", "Pre Training Scores", "Post Training Scores"])
 st.dataframe(df_display)
 
-# Team skill heatmap using Plotly
-st.subheader("🌐 Team Skill Heatmap")
+# Team skill heatmap
+st.subheader("🧠 Team Skill Heatmap")
 skill_matrix = pd.DataFrame(0, index=[emp["Name"] for emp in employees], columns=skills_pool)
 for emp in employees:
     for skill in emp["Skills"]:
         skill_matrix.loc[emp["Name"], skill] = 1
 
-heatmap_fig = px.imshow(skill_matrix, color_continuous_scale='Viridis', aspect='auto', title="Skill Distribution Across Team")
-heatmap_fig.update_layout(template='plotly_dark')
-st.plotly_chart(heatmap_fig, use_container_width=True)
+fig3, ax3 = plt.subplots(figsize=(10, 6))
+sns.heatmap(skill_matrix, cmap="coolwarm", cbar=True, ax=ax3)
+ax3.set_title("Team Skill Heatmap")
+st.pyplot(fig3)
+
+
 
