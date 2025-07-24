@@ -13,7 +13,7 @@ except:
     st.warning("Logo image not found. Please upload 'skillsight_logo.png'.")
 
 st.title("SkillSight Dashboard")
-st.markdown("**Powered by Innovaccer-GE-OPs Team**")
+st.markdown("**Presented by Innovaccer-GE-OPs Team**")
 
 # View toggle
 view_mode = st.sidebar.radio("Select View Mode", ["Employee View", "Manager View"])
