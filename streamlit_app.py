@@ -10,7 +10,7 @@ st.markdown("#### Powered by Innovaccer-GE-OPs Team")
 
 # Sample data generation
 roles = [
-    "Software Developer", "Data Analyst", " "Project Manager", "QA Engineer", "DevOps Engineer",
+    "Software Developer", "Data Analyst", "Project Manager", "QA Engineer", "DevOps Engineer",
     "Software Developer", "Data Analyst", "Project Manager", "QA Engineer", "DevOps Engineer",
     "Software Developer", "Data Analyst", "Project Manager", "QA Engineer", "DevOps Engineer",
     "Software Developer", "Data Analyst", "Project Manager", "QA Engineer", "DevOps Engineer"
