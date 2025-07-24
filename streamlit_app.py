@@ -1,3 +1,4 @@
+code = '''
 import streamlit as st
 import pandas as pd
 import random
@@ -6,7 +7,7 @@ import seaborn as sns
 
 # Sample data generation
 roles = [
-    "Software Developer", "Data Analyst", "Project Manager", "QA Engineer", "DevOps Engineer",
+    "Software Developer", "Data Analyst", " "Project Manager", "QA Engineer", "DevOps Engineer",
     "Software Developer", "Data Analyst", "Project Manager", "QA Engineer", "DevOps Engineer",
     "Software Developer", "Data Analyst", "Project Manager", "QA Engineer", "DevOps Engineer",
     "Software Developer", "Data Analyst", "Project Manager", "QA Engineer", "DevOps Engineer"
@@ -121,3 +122,8 @@ fig3, ax3 = plt.subplots(figsize=(10, 6))
 sns.heatmap(skill_matrix, cmap="YlGnBu", cbar=True, ax=ax3)
 ax3.set_title("Team Skill Heatmap")
 st.pyplot(fig3)
+'''
+
+with open("streamlit_app.py", "w") as f:
+    f.write(code)
+
